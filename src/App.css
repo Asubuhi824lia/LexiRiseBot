@@ -1,0 +1,63 @@
+.app-shell {
+  min-height: 100svh;
+}
+
+.app-header.ant-layout-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: auto;
+  line-height: normal;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--ant-color-border-secondary, rgba(127, 127, 127, 0.2));
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.logo-mark {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #8b5cf6, #6d28d9);
+  color: #fff;
+  font-weight: 700;
+  flex: none;
+}
+
+.nav-link {
+  padding: 6px 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: inherit;
+  opacity: 0.75;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  opacity: 1;
+  background: color-mix(in srgb, #7c3aed 16%, transparent);
+}
+
+.app-content {
+  width: min(760px, calc(100% - 32px));
+  margin: 32px auto 64px;
+}
+
+.page-card {
+  box-shadow: 0 18px 40px -24px rgba(88, 28, 135, 0.35);
+}
+
+@media (max-width: 640px) {
+  .app-header.ant-layout-header {
+    padding-inline: 12px;
+  }
+}
