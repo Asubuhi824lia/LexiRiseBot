@@ -7,9 +7,9 @@ import {
   startAuthStep,
   verifyAuthStep,
   resendAuth,
-} from '../api/signIn.ts'
-import queryKeys from '../../../api/queryKeys.ts'
-import type { ChallengeResponse } from '../api/types.ts'
+} from '../../api/signIn.ts'
+import queryKeys from '../../../../api/queryKeys.ts'
+import type { ChallengeResponse } from '../../api/types.ts'
 
 export function useAuthChallenge() {
   const { message } = App.useApp()

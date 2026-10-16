@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import type { AuthIdentifier, AuthMode } from '../api/types.ts'
-import type { FirstStepProps, SecondEmailStepProps, SecondTotpStepProps } from './types.ts'
+import type { AuthIdentifier, AuthMode } from '../../api/types.ts'
+import type { FirstStepProps, SecondEmailStepProps, SecondTotpStepProps } from '../types.ts'
 import { useAuthChallenge } from './useAuthChallenge.ts'
 
 export type AuthFormView =
@@ -14,9 +14,7 @@ export function useAuthForm(mode: AuthMode, identifier: AuthIdentifier): AuthFor
   // (переход «Почта» с TOTP, когда на аккаунте ещё нет email). Сбрасывается при totp / Назад.
   const [collectEmail, setCollectEmail] = useState(false)
   const challenge = flow.challenge
-  // Вариант «логин+пароль»: на шаге 1 почты нет — на шаге 2 её иногда нужно собрать.
-  // При identifier === 'email' почта уже известна, сбор не нужен.
-  const isEnabledEmailCollect = identifier === 'login'
+  const isLogin = identifier === 'login'
 
   function reset() {
     flow.setChallenge(null)
@@ -69,13 +67,13 @@ export function useAuthForm(mode: AuthMode, identifier: AuthIdentifier): AuthFor
     onBack: reset,
   }
 
-  if (challenge.channel === 'email' || (isEnabledEmailCollect && collectEmail)) {
+  if (challenge.channel === 'email' || (isLogin && collectEmail)) {
     return {
       step: 'secondEmail',
       props: {
         ...secondStepShared,
         needsEmailInput:
-          isEnabledEmailCollect ? !challenge.hasEmail || challenge.channel !== 'email' : false,
+          isLogin ? !challenge.hasEmail || challenge.channel !== 'email' : false,
         cooldown: flow.cooldown,
         isResendAuthPending: flow.isResendAuthPending,
         onResend: () => flow.resendAuthMutate(challenge.challengeId),
@@ -99,11 +97,11 @@ export function useAuthForm(mode: AuthMode, identifier: AuthIdentifier): AuthFor
       ...secondStepShared,
       onSwitchEmail: () => {
         // Почта уже есть на аккаунте, либо вход по email (сбор не нужен) — сразу factor → email.
-        if (challenge.hasEmail || !isEnabledEmailCollect) {
+        if (challenge.hasEmail || !isLogin) {
           flow.setAuthFactorStepMutate({ challengeId: challenge.challengeId, channel: 'email' })
         } 
-        // Почты на аккаунте нет — factor ещё totp, почту уже можно собирать. 
-        // Флаг откроет SecondEmailStep.
+        // Почты на аккаунте нет. 
+        // factor ещё totp, почту уже можно собирать. Флаг откроет SecondEmailStep.
         else {
           setCollectEmail(true)
         }

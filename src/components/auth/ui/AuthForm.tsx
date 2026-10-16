@@ -1,5 +1,5 @@
 import type { AuthIdentifier, AuthMode } from '../api/types.ts'
-import { useAuthForm } from '../model/useAuthForm.ts'
+import { useAuthForm } from '../model/hooks/useAuthForm.ts'
 import { FirstStep } from './steps/FirstStep.tsx'
 import { SecondEmailStep } from './steps/SecondEmailStep.tsx'
 import { SecondTotpStep } from './steps/SecondTotpStep.tsx'
