@@ -1,8 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-const here = path.dirname(fileURLToPath(import.meta.url))
+import { resolveDataDir } from './dataPaths.ts'
 
 export const isProd = process.env.NODE_ENV === 'production'
 export const PORT = Number(process.env.PORT) || 3001
@@ -16,6 +14,13 @@ export const PAYLOAD_MAX_AGE_MS = 2 * 60 * 1000
 export const BCRYPT_ROUNDS = 12
 export const COOKIE_NAME = 'lr_sid'
 export const REQUEST_HEADER = 'LexiRiseBot'
-export const DATA_DIR = path.resolve(here, '../data')
-export const DB_PATH = path.join(DATA_DIR, 'users.db')
-export const LAST_OTP_PATH = path.join(DATA_DIR, 'last-otp.json')
+
+export let DATA_DIR = ''
+export let DB_PATH = ''
+export let LAST_OTP_PATH = ''
+
+export async function initDataPaths() {
+  DATA_DIR = await resolveDataDir()
+  DB_PATH = path.join(DATA_DIR, 'users.db')
+  LAST_OTP_PATH = path.join(DATA_DIR, 'last-otp.json')
+}
