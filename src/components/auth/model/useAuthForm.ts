@@ -10,9 +10,13 @@ export type AuthFormView =
 
 export function useAuthForm(mode: AuthMode, identifier: AuthIdentifier): AuthFormView {
   const flow = useAuthChallenge()
+  // Локальный UI-флаг: показать SecondEmailStep с полем почты до вызова factor
+  // (переход «Почта» с TOTP, когда на аккаунте ещё нет email). Сбрасывается при totp / Назад.
   const [collectEmail, setCollectEmail] = useState(false)
   const challenge = flow.challenge
-  const canCollectEmail = identifier === 'login'
+  // Вариант «логин+пароль»: на шаге 1 почты нет — на шаге 2 её иногда нужно собрать.
+  // При identifier === 'email' почта уже известна, сбор не нужен.
+  const isEnabledEmailCollect = identifier === 'login'
 
   function reset() {
     flow.setChallenge(null)
@@ -56,19 +60,24 @@ export function useAuthForm(mode: AuthMode, identifier: AuthIdentifier): AuthFor
     }
   }
 
-  if (challenge.channel === 'email' || (canCollectEmail && collectEmail)) {
+  const secondStepShared = {
+    challenge,
+    isVerifyAuthStepPending: flow.isVerifyAuthStepPending,
+    isSetAuthFactorStepPending: flow.isSetAuthFactorStepPending,
+    onVerify: (code: string) =>
+      flow.verifyAuthStepMutate({ challengeId: challenge.challengeId, code }),
+    onBack: reset,
+  }
+
+  if (challenge.channel === 'email' || (isEnabledEmailCollect && collectEmail)) {
     return {
       step: 'secondEmail',
       props: {
-        challenge,
+        ...secondStepShared,
         needsEmailInput:
-          canCollectEmail ? !challenge.hasEmail || challenge.channel !== 'email' : false,
+          isEnabledEmailCollect ? !challenge.hasEmail || challenge.channel !== 'email' : false,
         cooldown: flow.cooldown,
-        isVerifyAuthStepPending: flow.isVerifyAuthStepPending,
         isResendAuthPending: flow.isResendAuthPending,
-        isSetAuthFactorStepPending: flow.isSetAuthFactorStepPending,
-        onVerify: (code) =>
-          flow.verifyAuthStepMutate({ challengeId: challenge.challengeId, code }),
         onResend: () => flow.resendAuthMutate(challenge.challengeId),
         onSendEmail: (email) =>
           flow.setAuthFactorStepMutate({
@@ -80,7 +89,6 @@ export function useAuthForm(mode: AuthMode, identifier: AuthIdentifier): AuthFor
           setCollectEmail(false)
           flow.setAuthFactorStepMutate({ challengeId: challenge.challengeId, channel: 'totp' })
         },
-        onBack: reset,
       },
     }
   }
@@ -88,18 +96,18 @@ export function useAuthForm(mode: AuthMode, identifier: AuthIdentifier): AuthFor
   return {
     step: 'secondTotp',
     props: {
-      challenge,
-      isVerifyAuthStepPending: flow.isVerifyAuthStepPending,
-      isSetAuthFactorStepPending: flow.isSetAuthFactorStepPending,
-      onVerify: (code) => flow.verifyAuthStepMutate({ challengeId: challenge.challengeId, code }),
+      ...secondStepShared,
       onSwitchEmail: () => {
-        if (challenge.hasEmail || !canCollectEmail) {
+        // Почта уже есть на аккаунте, либо вход по email (сбор не нужен) — сразу factor → email.
+        if (challenge.hasEmail || !isEnabledEmailCollect) {
           flow.setAuthFactorStepMutate({ challengeId: challenge.challengeId, channel: 'email' })
-        } else {
+        } 
+        // Почты на аккаунте нет — factor ещё totp, почту уже можно собирать. 
+        // Флаг откроет SecondEmailStep.
+        else {
           setCollectEmail(true)
         }
       },
-      onBack: reset,
     },
   }
 }

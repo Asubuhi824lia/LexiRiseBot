@@ -43,6 +43,7 @@ export function SecondTotpStep({
             }
           />
 
+          {/* QR и секрет — только при привязке приложения (enroll): otpauthUrl есть. */}
           {challenge.otpauthUrl && (
             <Flex vertical align="center" gap={12} style={{ marginBottom: 16 }}>
               <QRCodeSVG value={challenge.otpauthUrl} size={180} />
